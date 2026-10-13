@@ -32,7 +32,9 @@ An AI-powered application that allows users to upload documents, ask questions, 
 * Render
 * Streamlit Community Cloud
 
-## Architecture
+## System Architecture
+
+![AI Document Analyst Architecture](architecture.png)
 
 1. The user uploads a document through the Streamlit frontend.
 2. FastAPI receives the document and extracts its text.
@@ -110,13 +112,11 @@ The following measurements were recorded during a live test using the sample doc
 
 | Measurement        | Initial request | Repeated request |
 | ------------------ | --------------: | ---------------: |
-| Answer latency     |        2,123 ms |             0 ms |
+| Answer latency     |        2,123 ms |   0 ms (rounded) |
 | End-to-end request |        2,261 ms |            95 ms |
 | Cache status       |            Miss |              Hit |
 
-The repeated request reduced measured end-to-end latency by approximately 95.8% in this test. The reported answer latency of 0 ms is rounded; the complete request took 95 ms.
-
-These measurements describe one test sequence and are not a general performance guarantee.
+The repeated request reduced measured end-to-end latency by approximately 95.8% in this test. These measurements describe one test sequence and are not a general performance guarantee.
 
 ## Validation
 
@@ -148,6 +148,5 @@ API keys must be stored in environment variables or the hosting provider's secre
 
 Harshith Reddy Sanikommu
 
-GitHub: https://github.com/Harshith-Reddy-Sanikommu
-
-LinkedIn: https://www.linkedin.com/in/harshith-reddy-sanikommu-832540341
+* GitHub: https://github.com/Harshith-Reddy-Sanikommu
+* LinkedIn: https://www.linkedin.com/in/harshith-reddy-sanikommu-832540341
