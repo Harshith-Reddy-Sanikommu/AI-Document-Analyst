@@ -1,0 +1,12 @@
+
+fastapi
+uvicorn[standard]
+streamlit
+requests
+python-multipart
+pypdf
+scikit-learn
+python-dotenv
+google-genai
+pytest
+httpx

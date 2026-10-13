@@ -1,0 +1,15 @@
+# Smart Campus Management System
+
+The Smart Campus Management System is designed to simplify daily college operations.
+
+The system has three main modules: Student Management, Attendance Tracking, and Performance Analytics.
+
+The Student Management module stores student names, registration numbers, departments, and contact details.
+
+The Attendance Tracking module records student attendance and generates monthly attendance reports.
+
+The Performance Analytics module analyzes examination marks and identifies students who may need academic support.
+
+The system uses Python for backend processing, FastAPI for API development, and MySQL for database storage.
+
+The primary objective is to reduce manual administrative work and improve the accuracy of academic records.
