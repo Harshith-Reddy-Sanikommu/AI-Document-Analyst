@@ -1,82 +1,153 @@
 # AI Document Analyst
 
-A small retrieval-augmented document question-answering application built with FastAPI, Streamlit, TF-IDF retrieval, and a hosted open-weight language model API.
+An AI-powered application that allows users to upload documents, ask questions, and inspect the supporting evidence behind answers.
+
+## Live Demo
+
+* Frontend: https://ai-document-analyst-bsnfuzjpcdsb4asfebbosb.streamlit.app/
+* Backend API: https://ai-document-analyst-rfu3.onrender.com
+* API Health: https://ai-document-analyst-rfu3.onrender.com/health
+* GitHub: https://github.com/Harshith-Reddy-Sanikommu/AI-Document-Analyst
 
 ## Features
 
-- PDF, TXT, and Markdown uploads
-- Text extraction and overlapping chunk creation
-- TF-IDF ranking to send only relevant chunks to the model
-- Source labels with page and chunk identifiers
-- Evidence-only answer instructions and an unknown-answer fallback
-- In-memory answer caching and response latency display
-- API input validation, readable errors, and basic tests
+* Upload PDF, TXT, and Markdown documents.
+* Extract text and divide it into overlapping chunks.
+* Retrieve relevant passages using TF-IDF and cosine similarity.
+* Generate context-grounded answers using Google Gemini.
+* Display supporting sources for answers.
+* Abstain when relevant evidence is unavailable.
+* Cache repeated questions to reduce response time.
+* Validate requests and handle API errors.
 
-## Requirements
+## Technology Stack
 
-- Python 3.12 recommended
-- A Hugging Face access token with Inference Providers permission
-- Internet access for model requests
-
-## Windows / VS Code setup
-
-Open this folder in VS Code. In the integrated PowerShell terminal:
-
-```powershell
-py -3.12 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-Copy-Item .env.example .env
-```
-
-Edit `.env` and replace `HF_TOKEN` with your token. Never commit `.env` or paste the token into source code.
-
-## Run locally
-
-Terminal 1 — API:
-
-```powershell
-uvicorn app.main:app --reload
-```
-
-Open `http://127.0.0.1:8000/docs` to inspect the API.
-
-Terminal 2 — UI:
-
-```powershell
-streamlit run frontend.py
-```
-
-The app opens at the local URL printed by Streamlit. The UI expects the API at `http://127.0.0.1:8000` by default; set `API_URL` if it differs.
-
-## Run tests
-
-```powershell
-pytest -q
-```
-
-## Model choice
-
-The starter configuration uses `openai/gpt-oss-120b:fastest` through Hugging Face's OpenAI-compatible Inference Providers endpoint. This keeps model inference outside the application server, avoiding the hardware and setup costs of hosting a large model locally. Availability and usage limits depend on the selected provider and account. The model can be changed using `MODEL_NAME` in `.env`.
+* Python
+* Streamlit
+* FastAPI
+* Google Gemini API
+* scikit-learn
+* PyPDF
+* pytest
+* Render
+* Streamlit Community Cloud
 
 ## Architecture
 
-1. Streamlit collects uploads and questions.
-2. FastAPI validates uploads and questions.
-3. `document_parser.py` extracts text from PDF or UTF-8 text files.
-4. `retrieval.py` splits content into overlapping chunks and ranks them with TF-IDF/cosine similarity.
-5. `answering.py` sends only selected passages to the model, asks it to abstain when evidence is missing, and caches repeated question/context pairs.
-6. FastAPI returns the answer and the exact retrieved passages as source evidence.
+1. The user uploads a document through the Streamlit frontend.
+2. FastAPI receives the document and extracts its text.
+3. The extracted text is split into overlapping chunks.
+4. TF-IDF and cosine similarity retrieve relevant passages.
+5. Google Gemini generates an answer using the retrieved context.
+6. The application displays the answer and supporting sources.
+7. Repeated identical questions can reuse cached responses.
 
-## Limitations and next steps
+## Local Setup
 
-- Scanned PDFs require OCR; this MVP intentionally reports that limitation.
-- Documents are stored in process memory and disappear when the API restarts.
-- TF-IDF is lexical retrieval, not semantic embedding search.
-- In-memory caching is per process and resets on restart.
-- For production, add authentication, per-user document isolation, upload rate limits, persistent storage, restricted CORS origins, and privacy-aware retention policies.
+### Clone the repository
 
-## Measuring the optimization
+```bash
+git clone https://github.com/Harshith-Reddy-Sanikommu/AI-Document-Analyst.git
+cd AI-Document-Analyst
+```
 
-Run the same question twice against the same uploaded document. The first request may call the model; the second can reuse the cached completion. Record first and second response latency in a small table and report actual observed values. Do not invent performance numbers. Also compare prompt context size with the full extracted document size if you want to quantify retrieval's token-saving effect.
+### Create a virtual environment
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+### Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Configure environment variables
+
+Create a `.env` file in the project root.
+
+```dotenv
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=gemini-2.5-flash
+MAX_UPLOAD_MB=10
+CHUNK_SIZE=900
+CHUNK_OVERLAP=150
+RETRIEVAL_TOP_K=4
+```
+
+Never commit your actual API key to GitHub.
+
+### Start the backend
+
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+
+### Start the frontend
+
+Open another terminal in the project directory.
+
+```powershell
+$env:API_URL="http://127.0.0.1:8000"
+streamlit run frontend.py
+```
+
+## Testing
+
+Run the automated tests:
+
+```bash
+python -m pytest -q
+```
+
+Recorded test result: 6 tests passed.
+
+## Performance Evaluation
+
+The following measurements were recorded during a live test using the sample document.
+
+| Measurement        | Initial request | Repeated request |
+| ------------------ | --------------: | ---------------: |
+| Answer latency     |        2,123 ms |             0 ms |
+| End-to-end request |        2,261 ms |            95 ms |
+| Cache status       |            Miss |              Hit |
+
+The repeated request reduced measured end-to-end latency by approximately 95.8% in this test. The reported answer latency of 0 ms is rounded; the complete request took 95 ms.
+
+These measurements describe one test sequence and are not a general performance guarantee.
+
+## Validation
+
+* Correctly answered a question using information from the uploaded document.
+* Returned a cached response for a repeated question.
+* Abstained when the document did not contain the requested information.
+
+## Limitations
+
+* TF-IDF retrieval may miss semantically related passages.
+* Scanned PDFs without extractable text may require OCR.
+* Uploaded documents are stored in memory and may be lost when the backend restarts.
+* The in-memory cache is not shared across backend instances.
+* Free hosting services may experience cold-start delays.
+
+## Future Improvements
+
+* Add semantic search using embeddings.
+* Support OCR for scanned documents.
+* Add persistent document storage.
+* Expand integration tests and retrieval-quality evaluation.
+* Evaluate performance using a larger collection of documents.
+
+## Security
+
+API keys must be stored in environment variables or the hosting provider's secret manager. Never commit secrets to source control.
+
+## Author
+
+Harshith Reddy Sanikommu
+
+GitHub: https://github.com/Harshith-Reddy-Sanikommu
+
+LinkedIn: https://www.linkedin.com/in/harshith-reddy-sanikommu-832540341
