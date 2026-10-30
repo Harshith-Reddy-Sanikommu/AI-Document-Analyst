@@ -5,15 +5,7 @@ import html
 import requests
 import streamlit as st
 
-# --------------------------------------------------
-# CONFIGURATION
-# --------------------------------------------------
-
-API_URL = os.getenv(
-    "API_URL",
-    "http://127.0.0.1:8000"
-).rstrip("/")
-
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000").rstrip("/")
 REQUEST_TIMEOUT = 45
 
 st.set_page_config(
@@ -23,30 +15,21 @@ st.set_page_config(
 )
 
 
-# --------------------------------------------------
-# LOAD CSS
-# --------------------------------------------------
-
 def load_css():
     try:
-        with open("style.css", "r", encoding="utf-8") as file:
-            css = file.read()
-
-        st.markdown(
-            f"<style>{css}</style>",
-            unsafe_allow_html=True
-        )
+        with open("style.css", "r", encoding="utf-8") as f:
+            st.markdown(
+                f"<style>{f.read()}</style>",
+                unsafe_allow_html=True
+            )
     except FileNotFoundError:
-        st.warning("style.css not found. Please keep it beside frontend.py.")
+        st.warning("style.css not found.")
 
 
 load_css()
 
 
-# --------------------------------------------------
 # SESSION STATE
-# --------------------------------------------------
-
 if "document_id" not in st.session_state:
     st.session_state.document_id = None
 
@@ -57,36 +40,20 @@ if "answer_data" not in st.session_state:
     st.session_state.answer_data = None
 
 
-# --------------------------------------------------
 # SIDEBAR
-# --------------------------------------------------
-
 with st.sidebar:
-    st.markdown(
-        """
-        <div class="sidebar-brand">
-            <div class="brand-icon">✦</div>
-            <div>
-                <div class="brand-name">DOCUMIND</div>
-                <div class="brand-caption">INTELLIGENT DOCUMENTS</div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown("## ✦ DOCUMIND")
+    st.caption("INTELLIGENT DOCUMENTS")
 
-    st.markdown("---")
+    st.divider()
 
-    st.markdown(
-        '<div class="sidebar-heading">HOW IT WORKS</div>',
-        unsafe_allow_html=True
-    )
+    st.markdown("### HOW IT WORKS")
 
     steps = [
-        ("01", "Upload document", "Choose a PDF, TXT, or Markdown file."),
-        ("02", "Extract content", "The API extracts and processes the text."),
-        ("03", "Find evidence", "TF-IDF retrieval identifies relevant passages."),
-        ("04", "Generate answers", "The language model answers using the evidence.")
+        ("01", "Upload document", "Choose PDF, TXT, or Markdown."),
+        ("02", "Extract content", "Extract and process document text."),
+        ("03", "Find evidence", "Retrieve relevant document passages."),
+        ("04", "Generate answers", "Get AI answers based on evidence.")
     ]
 
     for number, title, description in steps:
@@ -94,7 +61,7 @@ with st.sidebar:
             f"""
             <div class="step-item">
                 <div class="step-number">{number}</div>
-                <div class="step-content">
+                <div>
                     <div class="step-title">{title}</div>
                     <div class="step-description">{description}</div>
                 </div>
@@ -103,58 +70,37 @@ with st.sidebar:
             unsafe_allow_html=True
         )
 
-    st.markdown("---")
+    st.divider()
 
-    st.markdown(
-        """
-        <div class="sidebar-note">
-            <div class="note-title">ⓘ GOOD TO KNOW</div>
-            <p>
-                Scanned PDFs without selectable text
-                are not supported in this MVP.
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        """
-        <div class="sidebar-footer">
-            DOCUMENT INTELLIGENCE<br>
-            <span>POWERED BY AI</span>
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.info(
+        "Scanned PDFs without selectable text are not supported in this MVP."
     )
 
 
-# --------------------------------------------------
-# HERO SECTION
-# --------------------------------------------------
+# HERO - NATIVE STREAMLIT COMPONENTS
+st.markdown('<div class="hero-start"></div>', unsafe_allow_html=True)
+
+st.markdown(
+    "**YOUR PERSONAL KNOWLEDGE ASSISTANT**",
+    help="DOCUMIND"
+)
 
 st.markdown(
     """
     <div class="hero">
-        <div class="hero-eyebrow">
-            YOUR PERSONAL KNOWLEDGE ASSISTANT
-        </div>
-
-        <h1>
+        <div class="hero-title">
             Understand documents.
             <span>Discover insights.</span>
-        </h1>
-
-        <p>
+        </div>
+        <div class="hero-description">
             Turn lengthy documents into meaningful answers.
             Ask questions, explore supporting evidence,
             and find information without reading every page.
-        </p>
-
+        </div>
         <div class="hero-bottom">
-            <span>✦ AI-POWERED ANALYSIS</span>
-            <span>✦ EVIDENCE-BASED ANSWERS</span>
-            <span>✦ SMART RETRIEVAL</span>
+            ✦ AI-POWERED ANALYSIS
+            &nbsp;&nbsp; ✦ EVIDENCE-BASED ANSWERS
+            &nbsp;&nbsp; ✦ SMART RETRIEVAL
         </div>
     </div>
     """,
@@ -162,51 +108,51 @@ st.markdown(
 )
 
 
-# --------------------------------------------------
-# DOCUMENT UPLOAD SECTION
-# --------------------------------------------------
-
+# UPLOAD SECTION
 st.markdown(
     """
-    <div class="section-heading">
-        <div class="section-kicker">STEP 01</div>
-        <h2>Upload your document</h2>
-        <p>Start by adding the document you want to understand.</p>
-    </div>
+    <div class="section-kicker">STEP 01</div>
     """,
     unsafe_allow_html=True
 )
+
+st.header("Upload your document")
+st.caption("Start by adding the document you want to understand.")
 
 uploaded_file = st.file_uploader(
     "Choose a document",
     type=["pdf", "txt", "md"],
-    help="Supported formats: PDF, TXT, and Markdown."
+    key="document_uploader",
+    label_visibility="collapsed"
 )
 
 if uploaded_file is not None:
+
     st.markdown(
         f"""
         <div class="file-preview">
-            <div class="file-icon">📄</div>
+            <span class="file-icon">📄</span>
             <div class="file-details">
-                <div class="file-name">{html.escape(uploaded_file.name)}</div>
+                <div class="file-name">
+                    {html.escape(uploaded_file.name)}
+                </div>
                 <div class="file-meta">
                     {uploaded_file.size / 1024:.1f} KB · READY TO PROCESS
                 </div>
             </div>
-            <div class="file-status">READY</div>
+            <span class="file-status">READY</span>
         </div>
         """,
         unsafe_allow_html=True
     )
 
     if st.button(
-        "PROCESS DOCUMENT  →",
+        "PROCESS DOCUMENT →",
         type="primary",
         use_container_width=True
     ):
         try:
-            with st.spinner("Extracting and indexing your document..."):
+            with st.spinner("Extracting and indexing document..."):
                 response = requests.post(
                     f"{API_URL}/documents",
                     files={
@@ -227,7 +173,7 @@ if uploaded_file is not None:
                 st.session_state.answer_data = None
 
                 st.success(
-                    f"Successfully processed {data['filename']} "
+                    f"Processed {data['filename']} "
                     f"into {data['chunk_count']} chunks."
                 )
 
@@ -252,69 +198,52 @@ if uploaded_file is not None:
             )
 
 
-# --------------------------------------------------
-# ACTIVE DOCUMENT
-# --------------------------------------------------
-
+# ACTIVE DOCUMENT AND QUESTION
 if st.session_state.document_id:
 
     st.markdown(
         f"""
         <div class="active-document">
-            <div class="active-document-icon">✓</div>
+            <div class="active-check">✓</div>
             <div>
-                <div class="active-document-label">ACTIVE DOCUMENT</div>
-                <div class="active-document-name">
+                <div class="active-label">ACTIVE DOCUMENT</div>
+                <div class="active-name">
                     {html.escape(str(st.session_state.filename))}
                 </div>
             </div>
-            <div class="active-document-status">INDEXED</div>
+            <div class="active-status">INDEXED</div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    st.markdown("---")
-
-    # --------------------------------------------------
-    # QUESTION SECTION
-    # --------------------------------------------------
+    st.divider()
 
     st.markdown(
-        """
-        <div class="section-heading">
-            <div class="section-kicker">STEP 02</div>
-            <h2>What would you like to know?</h2>
-            <p>Ask a question and let AI find the relevant information.</p>
-        </div>
-        """,
+        '<div class="section-kicker">STEP 02</div>',
         unsafe_allow_html=True
     )
+
+    st.header("What would you like to know?")
+    st.caption("Ask a question and find the relevant information.")
 
     question = st.text_area(
         "Your question",
-        placeholder=(
-            "Example: What are the main findings in this document?"
-        ),
-        height=120,
-        key="document_question"
+        placeholder="What are the main findings in this document?",
+        height=120
     )
 
-    ask_button = st.button(
-        "FIND ANSWER  →",
+    if st.button(
+        "FIND ANSWER →",
         type="primary",
         use_container_width=True,
         disabled=len(question.strip()) < 3
-    )
-
-    if ask_button:
+    ):
 
         try:
             start = time.perf_counter()
 
-            with st.spinner(
-                "Finding evidence and generating your answer..."
-            ):
+            with st.spinner("Finding evidence and generating an answer..."):
                 response = requests.post(
                     f"{API_URL}/ask",
                     json={
@@ -347,41 +276,28 @@ if st.session_state.document_id:
                 st.error(message)
 
         except requests.Timeout:
-            st.error(
-                "The request timed out. "
-                "Try a shorter question or try again later."
-            )
+            st.error("The request timed out. Please try again.")
 
         except requests.RequestException:
-            st.error(
-                "Cannot reach the backend API. "
-                "Check that it is running."
-            )
+            st.error("Cannot reach the backend API.")
 
 
-# --------------------------------------------------
-# ANSWER AND EVIDENCE
-# --------------------------------------------------
-
+# RESULTS
 if st.session_state.answer_data:
 
     saved = st.session_state.answer_data
     data = saved["result"]
 
-    st.markdown("---")
+    st.divider()
 
     st.markdown(
-        """
-        <div class="section-heading">
-            <div class="section-kicker">YOUR RESULTS</div>
-            <h2>Analysis report</h2>
-            <p>Your answer and the evidence supporting it.</p>
-        </div>
-        """,
+        '<div class="section-kicker">YOUR RESULTS</div>',
         unsafe_allow_html=True
     )
 
-    # Question card
+    st.header("Analysis report")
+    st.caption("Your answer and the evidence supporting it.")
+
     st.markdown(
         f"""
         <div class="question-card">
@@ -394,95 +310,53 @@ if st.session_state.answer_data:
         unsafe_allow_html=True
     )
 
-    # Answer card
-    st.markdown(
-        """
-        <div class="answer-heading">
-            <span>✦</span> AI-GENERATED ANSWER
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown("### ✦ AI-GENERATED ANSWER")
 
-    st.markdown(
-        '<div class="answer-card">',
-        unsafe_allow_html=True
-    )
-
+    st.markdown('<div class="answer-card">', unsafe_allow_html=True)
     st.write(data["answer"])
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown(
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-    # Metrics
-    st.markdown(
-        '<div class="metrics-heading">ANALYSIS METRICS</div>',
-        unsafe_allow_html=True
-    )
+    st.markdown("### ANALYSIS METRICS")
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.metric(
-            "Answer latency",
-            f"{data['latency_ms']:.0f} ms"
-        )
+        st.metric("Answer latency", f"{data['latency_ms']:.0f} ms")
 
     with col2:
-        st.metric(
-            "Cached answer",
-            "Yes" if data["cached"] else "No"
-        )
+        st.metric("Cached answer", "Yes" if data["cached"] else "No")
 
     with col3:
-        st.metric(
-            "Sources found",
-            len(data["sources"])
-        )
+        st.metric("Sources found", len(data["sources"]))
 
-    # Sources
-    st.markdown(
-        """
-        <div class="section-heading sources-heading">
-            <div class="section-kicker">VERIFICATION</div>
-            <h2>Supporting evidence</h2>
-            <p>Explore the document passages used to generate the answer.</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown("---")
+    st.markdown("### Supporting evidence")
 
     if not data["sources"]:
         st.warning("No relevant passages were found.")
 
-    else:
-        for index, source in enumerate(data["sources"], start=1):
+    for index, source in enumerate(data["sources"], start=1):
 
-            page_label = (
-                f" · Page {source['page']}"
-                if source.get("page")
-                else ""
-            )
+        page_label = (
+            f" · Page {source['page']}"
+            if source.get("page")
+            else ""
+        )
 
-            source_title = (
-                f"{index:02d}  |  {source['source']}"
-                f"{page_label} · Chunk {source['chunk_id']}"
-            )
+        title = (
+            f"{index:02d} | {source['source']}"
+            f"{page_label} · Chunk {source['chunk_id']}"
+        )
 
-            with st.expander(source_title):
-                st.write(source["text"])
+        with st.expander(title):
+            st.write(source["text"])
 
     st.caption(
         f"End-to-end UI request: {saved['ui_latency']:.0f} ms"
     )
 
 
-# --------------------------------------------------
 # FOOTER
-# --------------------------------------------------
-
 st.markdown(
     """
     <div class="main-footer">
@@ -490,7 +364,6 @@ st.markdown(
         <div class="footer-tagline">
             TURN INFORMATION INTO UNDERSTANDING.
         </div>
-        <div class="footer-line"></div>
         <div class="footer-bottom">
             DOCUMENT INTELLIGENCE · POWERED BY AI
         </div>
